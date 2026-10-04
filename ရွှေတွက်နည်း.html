@@ -1,0 +1,548 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>ရွှေတွက်နည်း</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=Noto+Sans+Myanmar:wght@400;600&family=Noto+Serif+Myanmar:wght@600&display=swap">
+<style>
+/* Layout: single narrow column, three tabs (price / weight / explain); results lead, working shown beneath. */
+:root {
+  --bg: #edf0ee;
+  --surface: #f8faf9;
+  --ink: #14302a;
+  --muted: #52655f;
+  --line: #ccd6d1;
+  --brass: #8a5f00;
+  --brass-soft: #ecdfb4;
+  --good: #1f6b4a;
+  --warn: #9b3d1a;
+  --font-display: 'Noto Serif Myanmar', 'Padauk', serif;
+  --font-body: 'Noto Sans Myanmar', 'Padauk', 'Myanmar Text', sans-serif;
+  --font-num: 'IBM Plex Sans', 'Noto Sans Myanmar', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1b18; --surface: #16261f; --ink: #e6eeea; --muted: #98ada6; --line: #2b403a;
+    --brass: #dbb65c; --brass-soft: #3a3015; --good: #6fd3a2; --warn: #f0976f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1b18; --surface: #16261f; --ink: #e6eeea; --muted: #98ada6; --line: #2b403a;
+  --brass: #dbb65c; --brass-soft: #3a3015; --good: #6fd3a2; --warn: #f0976f;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 15px; line-height: 1.85;
+  padding-inline: 16px; padding-block: 20px 48px;
+}
+.wrap { max-width: 640px; margin-inline: auto; display: flex; flex-direction: column; gap: 20px; }
+header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+h1 { font-family: var(--font-display); font-size: 28px; line-height: 1.5; margin: 0; text-wrap: balance; }
+.sub { color: var(--muted); font-size: 13.5px; margin: 0; line-height: 1.7; }
+h2 { font-family: var(--font-display); font-size: 19px; line-height: 1.6; margin: 0; text-wrap: balance; }
+h3 { font-size: 15px; margin: 0; font-weight: 600; }
+p { margin: 0; }
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+button, input { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+
+.toggle {
+  flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 999px;
+  padding: 2px 12px; font-size: 13px; cursor: pointer; line-height: 1.8;
+}
+.tabs { display: flex; border-bottom: 1px solid var(--line); gap: 4px; }
+.tab {
+  flex: 1; background: none; border: 0; border-bottom: 3px solid transparent; padding: 6px 4px 5px;
+  cursor: pointer; color: var(--muted); font-weight: 600;
+}
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--brass); }
+.panel { display: flex; flex-direction: column; gap: 22px; }
+
+.field { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.field label, .lbl { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.inp {
+  width: 100%; min-width: 0; border: 1px solid var(--line); background: var(--surface);
+  border-radius: 6px; padding: 6px 10px; font-family: var(--font-num); font-size: 17px; font-variant-numeric: tabular-nums;
+}
+.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 1px 12px;
+  cursor: pointer; font-size: 14px;
+}
+.chip[aria-pressed="true"] { background: var(--brass-soft); border-color: var(--brass); color: var(--ink); font-weight: 600; }
+
+.results { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.res { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.res.main { border-color: var(--brass); }
+.res .big { font-family: var(--font-num); font-size: 30px; font-weight: 600; line-height: 1.3; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.res .unit { font-size: 13px; color: var(--muted); }
+.work { font-family: var(--font-num); font-size: 13.5px; color: var(--muted); overflow-wrap: anywhere; line-height: 1.6; }
+.diff { color: var(--muted); font-size: 14px; }
+.warn { color: var(--warn); font-size: 14px; }
+
+.sec { display: flex; flex-direction: column; gap: 10px; padding-top: 18px; border-top: 1px solid var(--line); }
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: right; padding: 4px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; line-height: 1.7; }
+th { font-weight: 600; color: var(--muted); font-size: 13px; }
+th:first-child, td:first-child { text-align: left; }
+td.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+tr.sel td { background: var(--brass-soft); }
+.ok { color: var(--good); font-weight: 600; }
+.bad { color: var(--warn); font-weight: 600; }
+.note { font-size: 13.5px; color: var(--muted); line-height: 1.75; }
+.callout { border-left: 3px solid var(--warn); padding-left: 12px; font-size: 14px; }
+.bar { display: flex; gap: 3px; flex-wrap: wrap; }
+.bar i { width: 14px; height: 18px; border-radius: 2px; background: var(--brass); display: block; }
+.bar i.off { background: transparent; border: 1px dashed var(--muted); }
+.bar i.add { background: var(--muted); opacity: .55; }
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; }
+.pair > div { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+a { color: var(--brass); }
+code { font-family: var(--font-num); font-size: 14px; background: var(--brass-soft); padding: 0 6px; border-radius: 4px; overflow-wrap: anywhere; }
+ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+footer { font-size: 12.5px; color: var(--muted); line-height: 1.7; }
+@media (prefers-reduced-motion: no-preference) { .tab { transition: color .15s, border-color .15s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>ရွှေတွက်နည်း</h1>
+      <p class="sub">ရွှေဆိုင် client များနှင့် ဆွေးနွေးရာတွင် သုံးရန် ကိုယ်ပိုင်အကိုးအကား</p>
+    </div>
+    <button class="toggle" id="digitBtn" type="button" aria-label="ဂဏန်းပုံစံ ပြောင်းရန်">၁၂၃</button>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="t-price" aria-selected="true" aria-controls="p-price" type="button">ဈေးတွက်</button>
+    <button class="tab" role="tab" id="t-trade" aria-selected="false" aria-controls="p-trade" type="button">ရောင်း/ဝယ်</button>
+    <button class="tab" role="tab" id="t-weight" aria-selected="false" aria-controls="p-weight" type="button">အလေးချိန်</button>
+    <button class="tab" role="tab" id="t-explain" aria-selected="false" aria-controls="p-explain" type="button">ဆိုင်စနစ်</button>
+  </div>
+
+  <!-- ဈေးတွက် -->
+  <section class="panel" id="p-price" role="tabpanel" aria-labelledby="t-price">
+    <div class="field">
+      <label for="price">၁၆ ပဲရည် ၁ ကျပ်သား ဈေး (အခေါက်ဈေး)</label>
+      <input class="inp" id="price" type="number" inputmode="numeric" min="0" step="1000" value="2000000">
+    </div>
+
+    <div class="field">
+      <span class="lbl">ရွှေရည် (ပဲ / ပြား)</span>
+      <div class="chips" id="chips"></div>
+      <div class="row" style="margin-top:8px">
+        <div class="field"><label for="pae">ပဲ</label><input class="inp" id="pae" type="number" inputmode="decimal" min="0" max="16" step="1" value="15"></div>
+        <div class="field"><label for="pyar">ပြား (၁ ပဲ = ၄ ပြား)</label><input class="inp" id="pyar" type="number" inputmode="numeric" min="0" max="3" step="1" value="0"></div>
+      </div>
+    </div>
+
+    <div id="priceOut" class="panel" style="gap:12px"></div>
+
+    <div class="sec">
+      <h2>ပစ္စည်းတစ်ခု၏ တန်ဖိုး</h2>
+      <p class="note">အလေးချိန်ထည့်ပါက အပေါ်က ရည်နှင့် ဈေးအတိုင်း တန်ဖိုးတွက်ပေးသည်။</p>
+      <div class="row">
+        <div class="field"><label for="wk">ကျပ်သား</label><input class="inp" id="wk" type="number" inputmode="decimal" min="0" step="1" value="2"></div>
+        <div class="field"><label for="wp">ပဲ</label><input class="inp" id="wp" type="number" inputmode="decimal" min="0" step="1" value="8"></div>
+        <div class="field"><label for="wy">ရွေး</label><input class="inp" id="wy" type="number" inputmode="decimal" min="0" step="1" value="4"></div>
+      </div>
+      <div id="itemOut" class="panel" style="gap:10px"></div>
+    </div>
+
+    <div class="sec">
+      <h2>ရည်အလိုက် ဈေးစာရင်း</h2>
+      <p class="note">အပေါ်က အခေါက်ဈေးအတိုင်း ၁ ကျပ်သားအတွက် တွက်ထားသည်။ ရွေးထားသောရည်ကို မီးမောင်းထိုးထားသည်။</p>
+      <div class="tbl-wrap"><table id="tbl"></table></div>
+    </div>
+
+    <div class="sec">
+      <h2>ပုံထဲက ဥပမာနှင့် တိုက်စစ်ချက်</h2>
+      <p class="note">အခေါက်ဈေး ၂,၀၀၀,၀၀၀ ဖြင့် ဤ app ၏ ရလဒ်ကို ပုံထဲက တန်ဖိုးများနှင့် တိုက်ထားသည်။</p>
+      <div class="tbl-wrap"><table id="chk"></table></div>
+    </div>
+  </section>
+
+  <!-- ရောင်း/ဝယ် -->
+  <section class="panel" id="p-trade" role="tabpanel" aria-labelledby="t-trade" hidden>
+    <p class="note">အောက်က ဈေးနှစ်ခုသည် နမူနာဂဏန်းများ ဖြစ်သည်။ ဆိုင်၏ ယနေ့ဈေးဖြင့် အစားထိုးပါ။</p>
+    <div class="row">
+      <div class="field"><label for="sell">၁၆ ပဲရည် ရောင်းဈေး</label><input class="inp" id="sell" type="number" inputmode="numeric" min="0" step="1000" value="2050000"></div>
+      <div class="field"><label for="buy">၁၆ ပဲရည် ဝယ်ဈေး</label><input class="inp" id="buy" type="number" inputmode="numeric" min="0" step="1000" value="1980000"></div>
+    </div>
+    <div class="field">
+      <span class="lbl">တွက်နည်း</span>
+      <div class="chips" id="mchips"></div>
+    </div>
+    <div class="field" style="max-width:260px">
+      <label for="tp">ရွှေရည်</label>
+      <select class="inp" id="tp">
+        <option value="16">၁၆ ပဲရည်</option>
+        <option value="15" selected>၁၅ ပဲရည်</option>
+        <option value="14.5">၁၄ ပဲ ၂ ပြားရည်</option>
+        <option value="14">၁၄ ပဲရည်</option>
+        <option value="13">၁၃ ပဲရည်</option>
+        <option value="12">၁၂ ပဲရည်</option>
+      </select>
+    </div>
+    <div id="spreadOut" class="panel" style="gap:12px"></div>
+
+    <div class="sec">
+      <h2>အသင်းထုတ်ပြန်သော ၁၅ ပဲရည်ဈေးနှင့် နှိုင်းယှဉ်ရန်</h2>
+      <p class="note">ရန်ကုန်ရွှေလုပ်ငန်းရှင်များအသင်းသည် ၁၆ ပဲရည်နှင့် ၁၅ ပဲရည် ဈေးကို သီးသန့်ထုတ်ပြန်သည်။ ၁၅ ပဲရည်ဈေးကို ထည့်လျှင် ဖော်မြူလာရလဒ်နှင့် ကွာခြားချက်ကို ကြည့်နိုင်သည်။ မထည့်လျှင် ဘာမှမပြပါ။</p>
+      <div class="row">
+        <div class="field"><label for="sell15">၁၅ ပဲရည် ရောင်းဈေး</label><input class="inp" id="sell15" type="number" inputmode="numeric" min="0" step="1000" placeholder="မထည့်လည်းရ"></div>
+        <div class="field"><label for="buy15">၁၅ ပဲရည် ဝယ်ဈေး</label><input class="inp" id="buy15" type="number" inputmode="numeric" min="0" step="1000" placeholder="မထည့်လည်းရ"></div>
+      </div>
+      <div class="tbl-wrap"><table id="cmp15"></table></div>
+    </div>
+
+    <div class="sec">
+      <h2>ပစ္စည်းတစ်ခု၏ ရောင်း/ဝယ် အမြတ်</h2>
+      <div class="row">
+        <div class="field"><label for="tk">ကျပ်သား</label><input class="inp" id="tk" type="number" inputmode="decimal" min="0" value="1"></div>
+        <div class="field"><label for="tpp">ပဲ</label><input class="inp" id="tpp" type="number" inputmode="decimal" min="0" value="0"></div>
+        <div class="field"><label for="ty">ရွေး</label><input class="inp" id="ty" type="number" inputmode="decimal" min="0" value="0"></div>
+      </div>
+      <div id="tradeItem" class="panel" style="gap:10px"></div>
+    </div>
+
+    <div class="sec">
+      <h2>ရည်အလိုက် လျှော့ငွေ</h2>
+      <p class="note">၁ ကျပ်သားအတွက်။ လျှော့ငွေ = ၁၆ ပဲရည်ရောင်းဈေး − ထိုရည်၏ ရောင်းဈေး။</p>
+      <div class="tbl-wrap"><table id="tradeTbl"></table></div>
+    </div>
+  </section>
+
+  <!-- အလေးချိန် -->
+  <section class="panel" id="p-weight" role="tabpanel" aria-labelledby="t-weight" hidden>
+    <div class="sec" style="border-top:0;padding-top:0">
+      <h2>ကျပ်သား / ပဲ / ရွေး မှ ဂရမ်သို့</h2>
+      <div class="row">
+        <div class="field"><label for="k1">ကျပ်သား</label><input class="inp" id="k1" type="number" inputmode="decimal" min="0" value="1"></div>
+        <div class="field"><label for="p1">ပဲ</label><input class="inp" id="p1" type="number" inputmode="decimal" min="0" value="0"></div>
+        <div class="field"><label for="y1">ရွေး</label><input class="inp" id="y1" type="number" inputmode="decimal" min="0" value="0"></div>
+      </div>
+      <div id="w1Out" class="panel" style="gap:6px"></div>
+    </div>
+
+    <div class="sec">
+      <h2>ဂရမ်မှ ကျပ်သား / ပဲ / ရွေးသို့</h2>
+      <div class="field" style="max-width:240px"><label for="g2">ဂရမ်</label><input class="inp" id="g2" type="number" inputmode="decimal" min="0" step="0.01" value="50"></div>
+      <div id="w2Out" class="panel" style="gap:6px"></div>
+    </div>
+
+    <div class="sec">
+      <h2>ယူနစ်ဇယား</h2>
+      <div class="tbl-wrap"><table id="units"></table></div>
+      <p class="note">ပုံထဲက "၅ မူးသား = ၈ ပဲ" ကို ၄ မူးသား ဟု ပြင်ထားသည်။ စံယူနစ်ဇယားတွင် ၁ မူးသား = ၁/၈ ကျပ်သား (၂ ပဲ) ဖြစ်၍ ၈ ပဲသည် ၄ မူးသား ဖြစ်သည်။</p>
+      <p class="note">ဂရမ်တန်ဖိုး: စံယူနစ်ဇယားနှင့် ဗဟိုဘဏ်ရွှေဒင်္ဂါးတွင် ၁ ကျပ်သား = ၁၆.၃၂၉ ဂရမ် ဖြစ်သည်။ သတင်းအချို့တွင် ၁၆.၆ ဂရမ် ဟုလည်း ဖော်ပြသဖြင့် ဆိုင်သုံးတန်ဖိုးကို ရွေးပါ။</p>
+      <div class="chips" id="gchips"></div>
+      <div class="field" style="max-width:240px"><label for="gpk">၁ ကျပ်သား = ဂရမ်</label><input class="inp" id="gpk" type="number" inputmode="decimal" step="0.001" value="16.329"></div>
+    </div>
+  </section>
+
+  <!-- ဆိုင်စနစ် -->
+  <section class="panel" id="p-explain" role="tabpanel" aria-labelledby="t-explain" hidden>
+    <div class="sec" style="border-top:0;padding-top:0">
+      <h2>ယူနစ်နှင့် ရည်</h2>
+      <ul>
+        <li>၁ ကျပ်သား = ၁၆ ပဲ = ၁၂၈ ရွေး။ ၁ ပဲ = ၈ ရွေး။ ၁ မတ်သား = ၄ ပဲ၊ ၁ မူးသား = ၂ ပဲ။</li>
+        <li>၁၆ ပဲရည်သည် ၂၄ ကေရက် ရွှေ ဖြစ်သည်။ အခြားရည်ကို ပဲ × ၁.၅ ဖြင့် ကေရက်သို့ တွက်ပြောင်းနိုင်သည် (၁၅ ပဲ ≈ ၂၂.၅ ကေ)။ ဤပြောင်းချက်ကို app က တွက်ထားခြင်းဖြစ်ပြီး ဆိုင်ကြေညာချက် မဟုတ်ပါ။</li>
+        <li>၁ ကျပ်သား = ၁၆.၃၂၉ ဂရမ် (စံ)။ သတင်းအချို့တွင် ၁၆.၆ ဂရမ်ဟုလည်း ရေးသည်။</li>
+        <li>ရွေးကို ၁/၁၂၈ ကျပ်သားအဖြစ် သုံးသည်။ ယူနစ်ဇယားအချို့တွင် ရွေးလေး = ၁/၁၂၀ ကျပ်သား ဟု ပါ၍ ထိုဇယားနှင့် ရောမတွက်ပါနှင့်။</li>
+      </ul>
+    </div>
+
+    <div class="sec">
+      <h2>ဈေးကိုးကားပုံ</h2>
+      <ul>
+        <li>ဆိုင်များသည် ၁၆ ပဲရည် အခေါက်ရွှေ ၁ ကျပ်သားဈေးကို အခြေခံသည်။ ဤ app ၏ "အခေါက်ဈေး" သည် ထိုဈေးဖြစ်သည်။</li>
+        <li>၂၀၂၄ ခုနှစ် သတင်းများအရ ရန်ကုန်ရွှေလုပ်ငန်းရှင်များအသင်း (YGEA) က ၁၆ ပဲရည်နှင့် ၁၅ ပဲရည် ရောင်းဈေး၊ ဝယ်ဈေး၊ ကွာခြားချက်ကို ရည်ညွှန်းဈေးအဖြစ် နေ့စဉ် ထုတ်ပြန်ပြီး ဆိုင်များကို ထိုဈေးအတိုင်း ရောင်းဝယ်ရန် ညွှန်ကြားခဲ့သည်။ လက်ရှိ အခြေအနေ ပြောင်းလဲနိုင်သဖြင့် ယနေ့ဈေးကို ဆိုင်၏ ကြေညာချက်ဖြင့် အတည်ပြုပါ။</li>
+        <li>ရောင်းဈေးနှင့် ဝယ်ဈေး ကွာခြားချက်ကို ရောင်း/ဝယ် tab တွင် တွက်နိုင်ပြီး ၁၅ ပဲရည် အသင်းဈေးကိုလည်း ဖော်မြူလာရလဒ်နှင့် နှိုင်းယှဉ်နိုင်သည်။</li>
+      </ul>
+    </div>
+
+    <div class="sec">
+      <h2>အတွင်းစပ်နှင့် အပြင်စပ်</h2>
+      <p>ရွှေရည်နိမ့်လျှင် အခေါက်ဈေးမှ လျှော့တွက်ရသည်။ နှစ်နည်းလုံး အခေါက်ဈေး (၁၆ ပဲရည် ၁ ကျပ်သားဈေး) မှ စတွက်သည်။</p>
+      <div class="pair">
+        <div>
+          <h3>အတွင်းစပ်</h3>
+          <code>ရည်ပဲ ÷ ၁၆ × အခေါက်ဈေး</code>
+          <p>၁၅ ပဲရည်ဆိုလျှင် ၁၅ ÷ ၁၆ ကို အခေါက်ဈေးနှင့် မြှောက်သည်။</p>
+          <div class="bar" aria-label="၁၆ ပိုင်းတွင် ၁၅ ပိုင်း" id="barIn"></div>
+        </div>
+        <div>
+          <h3>အပြင်စပ်</h3>
+          <code>အခေါက်ဈေး × ၁၆ ÷ (၃၂ − ရည်ပဲ)</code>
+          <p>၁၅ ပဲရည်ဆိုလျှင် ၁၆ ÷ ၁၇ ဖြင့် တွက်သည်။ ဤပုံသေနည်းကို ပုံထဲက ဥပမာ ၃ ခုမှ ပြန်ရှာထားပြီး ၃ ခုလုံးနှင့် ကိုက်ညီသည်။</p>
+          <div class="bar" aria-label="၁၇ ပိုင်းတွင် ၁၆ ပိုင်း" id="barOut"></div>
+        </div>
+      </div>
+      <p class="note">အခေါက်ဈေး ၂,၀၀၀,၀၀၀ တွင် အပြင်စပ်ဈေးသည် အတွင်းစပ်ထက် ပိုများသည်။</p>
+      <ul>
+        <li>၁၅ ပဲရည် — <span class="num" data-n="7352"></span> ကျပ် ကွာသည်</li>
+        <li>၁၄ ပဲ ၂ ပြားရည် — <span class="num" data-n="16071"></span> ကျပ် ကွာသည်</li>
+        <li>၁၄ ပဲရည် — <span class="num" data-n="27777"></span> ကျပ် ကွာသည်</li>
+      </ul>
+      <p class="note">ဈေးကို ကိန်းပြည့်အောက်ဆုံးသို့ ဖြတ်သည် (၁,၈၈၂,၃၅၂.၉၄ → ၁,၈၈၂,၃၅၂)။</p>
+    </div>
+
+    <div class="sec">
+      <h2>app တွင် မထည့်ထားသောအရာ</h2>
+      <p class="note">လက်ခ (ဖန်တီးခ)၊ လျော့တွက်ခြင်း၊ ဆိုင်တစ်ဆိုင်ချင်းစီ၏ ရောင်း/ဝယ်ကြေး စသည်တို့ကို ယုံကြည်ရသော ရင်းမြစ်မတွေ့ရသဖြင့် မထည့်ပါ။ ဆိုင်၏ ကိုယ်ပိုင်စံနှုန်း ရှိလျှင် ပေးပို့ပါက ထည့်ပေးနိုင်သည်။</p>
+    </div>
+
+    <div class="sec">
+      <h2>ရင်းမြစ်</h2>
+      <ul>
+        <li><a href="https://en.wikipedia.org/wiki/Myanmar_units_of_measurement" target="_blank" rel="noopener">Wikipedia — Myanmar units of measurement</a> (ကျပ်သား ၁၆.၃၂၉၃ ဂရမ်၊ မူး၊ မတ်၊ ရွေးလေး)</li>
+        <li><a href="https://www.rfa.org/burmese/news/gold-price-take-action-06052024063024.html" target="_blank" rel="noopener">RFA ဗမာပြန် — ရန်ကုန်ရွှေအသင်း သတ်မှတ်စျေး (၅ ဇွန် ၂၀၂၄)</a></li>
+        <li><a href="https://www.myanmarlabournews.com/en/posts/the-gold-association-notify-the-gold-shops-to-open-daily-and-to-sell-at-the-set-price" target="_blank" rel="noopener">Myanmar Labour News — gold association set price</a> (၂၄ ကေ ၁ ကျပ်သား ၁၆.၃ ဂရမ်)</li>
+        <li><a href="https://myanmarlabournews.com/en/posts/1-kyat-thar-059oz-of-gold-rose-to-a-record-high-of-over-53-lakhs" target="_blank" rel="noopener">Myanmar Labour News — ၁ ကျပ်သား ၁၆.၆ ဂရမ်ဟု ဖော်ပြသည့် သတင်း</a></li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>ပုံထဲက ပုံသေနည်းများနှင့် အများသိရင်းမြစ်များအပေါ် အခြေခံသည်။ ရောင်းဝယ်ဈေး အတည်ပြုရာတွင် ဆိုင်၏ ကိုယ်ပိုင်စံနှုန်းနှင့် တိုက်စစ်ပါ။</footer>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var burmese = false;
+  try { burmese = localStorage.getItem('goldDigits') === 'my'; } catch (e) {}
+
+  var MY = '၀၁၂၃၄၅၆၇၈၉';
+  function digits(s) {
+    return burmese ? String(s).replace(/[0-9]/g, function (d) { return MY[+d]; }) : String(s);
+  }
+  function fmt(n, dp) {
+    var s = Number(n).toLocaleString('en-US', { maximumFractionDigits: dp == null ? 0 : dp, minimumFractionDigits: 0 });
+    return digits(s);
+  }
+  function tidy(n) { return digits(String(Math.round(n * 1000) / 1000)); }
+  function val(id) { var v = parseFloat($(id).value); return isFinite(v) && v >= 0 ? v : 0; }
+
+  /* ဖော်မြူလာ: ဥပမာများအတိုင်း ကိန်းပြည့်အောက်ဆုံးသို့ ဖြတ်သည် */
+  function inner(price, p) { return Math.floor(price * p / 16); }
+  function outer(price, p) { return Math.floor(price * 16 / (32 - p)); }
+
+  var PRESETS = [[15, 0], [14, 2], [14, 0], [13, 0], [12, 0]];
+  function paeLabel(pae, pyar) { return digits(pae) + ' ပဲ' + (pyar ? ' ' + digits(pyar) + ' ပြား' : ''); }
+
+  function buildChips() {
+    var box = $('chips'); box.innerHTML = '';
+    var cp = val('pae'), cy = val('pyar');
+    PRESETS.forEach(function (pr) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip';
+      b.setAttribute('aria-pressed', (cp === pr[0] && cy === pr[1]) ? 'true' : 'false');
+      b.textContent = paeLabel(pr[0], pr[1]) + 'ရည်';
+      b.onclick = function () { $('pae').value = pr[0]; $('pyar').value = pr[1]; renderPrice(); };
+      box.appendChild(b);
+    });
+  }
+
+  function purity() {
+    var pae = val('pae'), pyar = Math.min(3, val('pyar'));
+    return { pae: pae, pyar: pyar, p: pae + pyar / 4 };
+  }
+
+  function renderPrice() {
+    buildChips();
+    var price = val('price'), pu = purity(), p = pu.p;
+    var out = $('priceOut');
+    if (p <= 0 || p > 16 || price <= 0) {
+      out.innerHTML = '<p class="warn">အခေါက်ဈေးကို ထည့်ပြီး ရည်ကို ၀ ထက်ကြီး ၁၆ ပဲ အတွင်း ထည့်ပါ။</p>';
+      $('itemOut').innerHTML = ''; renderTable(price, p); return;
+    }
+    var a = outer(price, p), b = inner(price, p), div = 32 - p;
+    out.innerHTML =
+      '<div class="results">' +
+        '<div class="res main"><span class="lbl">အပြင်စပ်</span><span class="big">' + fmt(a) + '</span><span class="unit">ကျပ် / ၁ ကျပ်သား</span>' +
+        '<span class="work">' + fmt(price) + ' × ၁၆ ÷ ' + tidy(div) + ' = ' + fmt(a) + '</span></div>' +
+        '<div class="res"><span class="lbl">အတွင်းစပ်</span><span class="big">' + fmt(b) + '</span><span class="unit">ကျပ် / ၁ ကျပ်သား</span>' +
+        '<span class="work">' + tidy(p) + ' ÷ ၁၆ × ' + fmt(price) + ' = ' + fmt(b) + '</span></div>' +
+      '</div>' +
+      '<p class="diff">' + paeLabel(pu.pae, pu.pyar) + 'ရည် (≈ ' + tidy(p * 1.5) + ' ကေရက်) တွင် နှစ်နည်း ကွာခြားချက် ' + fmt(Math.abs(a - b)) + ' ကျပ်</p>';
+
+    var yw = val('wk') * 128 + val('wp') * 8 + val('wy');
+    var kdec = yw / 128;
+    var gpk = parseFloat($('gpk').value) || 16.329;
+    $('itemOut').innerHTML = yw <= 0 ? '<p class="note">အလေးချိန် ထည့်ပါ။</p>' :
+      '<p><span class="num">' + fmt(yw) + '</span> ရွေး = ' + tidy(kdec) + ' ကျပ်သား = ' + fmt(kdec * gpk, 2) + ' ဂရမ်</p>' +
+      '<div class="results">' +
+        '<div class="res main"><span class="lbl">အပြင်စပ် တန်ဖိုး</span><span class="big">' + fmt(Math.floor(a * kdec)) + '</span><span class="unit">ကျပ်</span></div>' +
+        '<div class="res"><span class="lbl">အတွင်းစပ် တန်ဖိုး</span><span class="big">' + fmt(Math.floor(b * kdec)) + '</span><span class="unit">ကျပ်</span></div>' +
+      '</div>';
+    renderTable(price, p);
+  }
+
+  function renderTable(price, cur) {
+    var rows = [16, 15, 14.5, 14, 13, 12];
+    var h = '<tr><th>ရည်</th><th>ကေရက်</th><th>အတွင်းစပ်</th><th>အပြင်စပ်</th></tr>';
+    rows.forEach(function (p) {
+      var name = Math.floor(p) + ' ပဲ' + (p % 1 ? ' ၂ ပြား' : '');
+      h += '<tr' + (p === cur ? ' class="sel"' : '') + '><td>' + digits(name) + '</td><td class="num">' + tidy(p * 1.5) + '</td><td class="num">' + fmt(inner(price, p)) + '</td><td class="num">' + fmt(outer(price, p)) + '</td></tr>';
+    });
+    $('tbl').innerHTML = h;
+  }
+
+  function renderCheck() {
+    var ex = [
+      { n: '၁၅ ပဲရည်', p: 15, o: 1882352, i: 1875000 },
+      { n: '၁၄ ပဲ ၂ ပြားရည်', p: 14.5, o: 1828571, i: 1812500 },
+      { n: '၁၄ ပဲရည်', p: 14, o: 1777777, i: 1750000 }
+    ];
+    var h = '<tr><th>ရည်</th><th>အပြင်စပ်</th><th>အတွင်းစပ်</th></tr>';
+    ex.forEach(function (e) {
+      var co = outer(2000000, e.p), ci = inner(2000000, e.p);
+      function cell(c, exp) {
+        return '<td class="num">' + fmt(c) + ' <span class="' + (c === exp ? 'ok' : 'bad') + '">' + (c === exp ? '✓' : '≠ ' + fmt(exp)) + '</span></td>';
+      }
+      h += '<tr><td>' + e.n + '</td>' + cell(co, e.o) + cell(ci, e.i) + '</tr>';
+    });
+    $('chk').innerHTML = h;
+  }
+
+  function buildG() {
+    var box = $('gchips'); box.innerHTML = '';
+    var cur = parseFloat($('gpk').value);
+    [[16.329, '၁၆.၃၂၉ (စံ)'], [16.6, '၁၆.၆ (သတင်းအချို့)']].forEach(function (g) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip';
+      b.setAttribute('aria-pressed', cur === g[0] ? 'true' : 'false');
+      b.textContent = digits(g[1]);
+      b.onclick = function () { $('gpk').value = g[0]; renderWeight(); renderPrice(); renderTrade(); };
+      box.appendChild(b);
+    });
+  }
+
+  function renderWeight() {
+    buildG();
+    var gpk = parseFloat($('gpk').value) || 16.329;
+    var yw = val('k1') * 128 + val('p1') * 8 + val('y1');
+    var k = yw / 128;
+    $('w1Out').innerHTML =
+      '<p>စုစုပေါင်း <b class="num">' + fmt(yw, 2) + '</b> ရွေး = <b class="num">' + tidy(yw / 8) + '</b> ပဲ = <b class="num">' + tidy(k) + '</b> ကျပ်သား</p>' +
+      '<p>ဂရမ် <b class="num">' + fmt(k * gpk, 2) + '</b></p>';
+    var g = val('g2');
+    var kk = g / gpk, tot = Math.round(kk * 128 * 100) / 100;
+    var K = Math.floor(tot / 128), rem = tot - K * 128, P = Math.floor(rem / 8), Y = Math.round((rem - P * 8) * 100) / 100;
+    $('w2Out').innerHTML =
+      '<p><b class="num">' + fmt(g, 2) + '</b> ဂရမ် = <b>' + digits(K) + ' ကျပ်သား ' + digits(P) + ' ပဲ ' + tidy(Y) + ' ရွေး</b></p>' +
+      '<p class="note">စုစုပေါင်း ' + tidy(kk) + ' ကျပ်သား = ' + fmt(tot, 2) + ' ရွေး</p>';
+    var U = [
+      ['၁ ကျပ်သား', 16, 128], ['၄ မူးသား', 8, 64], ['၁ မတ်သား', 4, 32],
+      ['၁ မူးသား', 2, 16], ['၁ ပဲသား', 1, 8], ['၂ ပြားသား', 0.5, 4], ['၁ ပြားသား', 0.25, 2]
+    ];
+    var h = '<tr><th>ယူနစ်</th><th>ပဲ</th><th>ရွေး</th><th>ဂရမ်</th></tr>';
+    U.forEach(function (u) {
+      h += '<tr><td>' + u[0] + '</td><td class="num">' + tidy(u[1]) + '</td><td class="num">' + tidy(u[2]) + '</td><td class="num">' + fmt(u[2] / 128 * gpk, 2) + '</td></tr>';
+    });
+    $('units').innerHTML = h;
+  }
+
+  var method = 'in';
+  function calc(price, p) { return method === 'in' ? inner(price, p) : outer(price, p); }
+
+  function renderTrade() {
+    var box = $('mchips'); box.innerHTML = '';
+    [['in', 'အတွင်းစပ်'], ['out', 'အပြင်စပ်']].forEach(function (m) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip';
+      b.setAttribute('aria-pressed', method === m[0] ? 'true' : 'false');
+      b.textContent = m[1];
+      b.onclick = function () { method = m[0]; renderTrade(); };
+      box.appendChild(b);
+    });
+    var S = val('sell'), B = val('buy'), p = parseFloat($('tp').value);
+    var out = $('spreadOut');
+    if (S <= 0 || B <= 0) {
+      out.innerHTML = '<p class="warn">ရောင်းဈေးနှင့် ဝယ်ဈေး နှစ်ခုလုံး ထည့်ပါ။</p>';
+      $('tradeItem').innerHTML = ''; $('tradeTbl').innerHTML = ''; $('cmp15').innerHTML = ''; return;
+    }
+    var spread = S - B, pct = spread / S * 100;
+    var cls = spread < 0 ? 'warn' : 'diff';
+    out.innerHTML =
+      '<div class="results">' +
+        '<div class="res main"><span class="lbl">ရောင်း/ဝယ် ကွာခြားချက် (၁၆ ပဲရည်)</span><span class="big">' + fmt(spread) + '</span><span class="unit">ကျပ် / ၁ ကျပ်သား</span>' +
+        '<span class="work">' + fmt(S) + ' − ' + fmt(B) + ' = ' + fmt(spread) + '</span></div>' +
+        '<div class="res"><span class="lbl">ရောင်းဈေးအပေါ် ရာခိုင်နှုန်း</span><span class="big">' + digits((Math.round(pct * 100) / 100).toFixed(2)) + '%</span><span class="unit">' + fmt(spread) + ' ÷ ' + fmt(S) + ' × ၁၀၀</span></div>' +
+      '</div>' + (spread < 0 ? '<p class="warn">ဝယ်ဈေးက ရောင်းဈေးထက် များနေသည်။ ဈေးနှစ်ခုကို ပြန်စစ်ပါ။</p>' : '');
+
+    var s15 = val('sell15'), b15 = val('buy15'), c = '';
+    if (s15 > 0 || b15 > 0) {
+      c = '<tr><th></th><th>အသင်းဈေး</th><th>အတွင်းစပ်</th><th>အပြင်စပ်</th></tr>';
+      if (s15 > 0) c += '<tr><td>ရောင်းဈေး</td><td class="num">' + fmt(s15) + '</td><td class="num">' + fmt(inner(S, 15)) + '</td><td class="num">' + fmt(outer(S, 15)) + '</td></tr>' +
+        '<tr><td>ကွာခြား</td><td></td><td class="num">' + fmt(s15 - inner(S, 15)) + '</td><td class="num">' + fmt(s15 - outer(S, 15)) + '</td></tr>';
+      if (b15 > 0) c += '<tr><td>ဝယ်ဈေး</td><td class="num">' + fmt(b15) + '</td><td class="num">' + fmt(inner(B, 15)) + '</td><td class="num">' + fmt(outer(B, 15)) + '</td></tr>' +
+        '<tr><td>ကွာခြား</td><td></td><td class="num">' + fmt(b15 - inner(B, 15)) + '</td><td class="num">' + fmt(b15 - outer(B, 15)) + '</td></tr>';
+    }
+    $('cmp15').innerHTML = c;
+    var yw = val('tk') * 128 + val('tpp') * 8 + val('ty'), kd = yw / 128;
+    var buyV = Math.floor(calc(B, p) * kd), sellV = Math.floor(calc(S, p) * kd), gain = sellV - buyV;
+    $('tradeItem').innerHTML = yw <= 0 ? '<p class="note">အလေးချိန် ထည့်ပါ။</p>' :
+      '<p class="note">' + tidy(kd) + ' ကျပ်သား၊ ' + digits(p % 1 ? '၁၄ ပဲ ၂ ပြား' : p + ' ပဲ') + 'ရည်၊ ' + (method === 'in' ? 'အတွင်းစပ်' : 'အပြင်စပ်') + 'ဖြင့်</p>' +
+      '<div class="results">' +
+        '<div class="res"><span class="lbl">ဝယ်ယူတန်ဖိုး</span><span class="big">' + fmt(buyV) + '</span><span class="unit">ကျပ်</span></div>' +
+        '<div class="res"><span class="lbl">ရောင်းချတန်ဖိုး</span><span class="big">' + fmt(sellV) + '</span><span class="unit">ကျပ်</span></div>' +
+        '<div class="res main"><span class="lbl">ကွာခြားငွေ</span><span class="big">' + fmt(gain) + '</span><span class="unit">ကျပ်</span></div>' +
+      '</div>';
+
+    var rows = [16, 15, 14.5, 14, 13, 12], s16 = calc(S, 16);
+    var h = '<tr><th>ရည်</th><th>ဝယ်ဈေး</th><th>ရောင်းဈေး</th><th>လျှော့ငွေ</th></tr>';
+    rows.forEach(function (r) {
+      var nm = Math.floor(r) + ' ပဲ' + (r % 1 ? ' ၂ ပြား' : '');
+      var sv = calc(S, r);
+      h += '<tr' + (r === p ? ' class="sel"' : '') + '><td>' + digits(nm) + '</td><td class="num">' + fmt(calc(B, r)) + '</td><td class="num">' + fmt(sv) + '</td><td class="num">' + fmt(s16 - sv) + '</td></tr>';
+    });
+    $('tradeTbl').innerHTML = h;
+  }
+
+  function renderExplain() {
+    function bar(id, total, fill) {
+      var s = '';
+      for (var i = 0; i < total; i++) s += '<i class="' + (i < fill ? '' : (id === 'barOut' ? 'add' : 'off')) + '"></i>';
+      $(id).innerHTML = s;
+    }
+    bar('barIn', 16, 15);
+    bar('barOut', 17, 16);
+    document.querySelectorAll('[data-n]').forEach(function (el) { el.textContent = fmt(+el.getAttribute('data-n')); });
+  }
+
+  function renderAll() {
+    renderPrice(); renderCheck(); renderTrade(); renderWeight(); renderExplain();
+    $('digitBtn').textContent = burmese ? '123' : '၁၂၃';
+  }
+
+  ['price', 'pae', 'pyar', 'wk', 'wp', 'wy'].forEach(function (id) { $(id).addEventListener('input', renderPrice); });
+  ['k1', 'p1', 'y1', 'g2'].forEach(function (id) { $(id).addEventListener('input', renderWeight); });
+  ['sell', 'buy', 'sell15', 'buy15', 'tp', 'tk', 'tpp', 'ty'].forEach(function (id) { $(id).addEventListener('input', renderTrade); });
+  $('tp').addEventListener('change', renderTrade);
+  $('gpk').addEventListener('input', function () { renderWeight(); renderPrice(); });
+  $('digitBtn').onclick = function () {
+    burmese = !burmese;
+    try { localStorage.setItem('goldDigits', burmese ? 'my' : 'en'); } catch (e) {}
+    renderAll();
+  };
+
+  var tabs = ['price', 'trade', 'weight', 'explain'];
+  tabs.forEach(function (name) {
+    $('t-' + name).onclick = function () {
+      tabs.forEach(function (n) {
+        var on = n === name;
+        $('t-' + n).setAttribute('aria-selected', on ? 'true' : 'false');
+        $('p-' + n).hidden = !on;
+      });
+    };
+  });
+
+  renderAll();
+})();
+</script>
+
+</body></html>
